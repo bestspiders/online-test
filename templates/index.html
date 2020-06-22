@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>代码在线测试</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+        <!--图标-->
+	<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	<!--Layx弹窗-->
+        <link href="/static/Layx/layx.min.css" rel="stylesheet" type="text/css" />
+	<script src="/static/Layx/layx.min.js" type="text/javascript"></script>
+        <style type="text/css">
+            .language {
+                margin-bottom: 10px;
+	    }
+	</style>
+    </head>
+    <body class="bg-secondary"> <!--class="bg-secondary"-->
+	<div class="container">
+	    <div class="row">
+		    <div class="col-xs-12 col-sm-12">
+		        <div class="btn-group" role="group" aria-label="Button group with nested dropdown">
+                            <select class="selectpicker" id="code_select">
+				<option value="0">编译器选择</option>
+                                <option value="py2">python2</option>
+                                <option value="py3">python3</option>
+				<!--  <option value="gcc7.4">gcc7.4</option>-->
+				<option value="shell">shell</option>
+                            </select>
+
+                            <button type="button" class="btn btn-default" onclick="run_code()">
+                                <span class="fa fa-play" aria-hidden="true"></span>运行
+                            </button>
+			     
+			    <!-- <button type="button" class="btn btn-secondary"><span class="text-dark">使用说明</span></button> -->
+                        </div>
+		    </div>
+	    </div>
+	    <div class="row" >
+		<div class="col-xs-12 col-sm-12">    
+                    <form>
+                        {% csrf_token %}
+                        <textarea id="code_content" row="40" ></textarea>
+                    </form>
+		</div>
+            </div>
+
+
+        </div>
+	
+        <link rel="stylesheet" href="/static/codemirror-5.52.2/lib/codemirror.css"/>
+        <script src="/static/codemirror-5.52.2/lib/codemirror.js"></script>
+        <!--python代码高亮必须引入-->
+        <script src="/static/codemirror-5.52.2/mode/python/python.js"></script>
+        <!--shell代码高亮-->
+        <script src="/static/codemirror-5.52.2/mode/shell/shell.js"></script>
+	<script src="/static/codemirror-5.52.2/mode/clike/clike.js"></script>
+        <!--引入css文件，用以支持主题-->
+        <link rel="stylesheet" href="/static/codemirror-5.52.2/theme/monokai.css"/>
+
+        <!--支持代码折叠-->
+        <link rel="stylesheet" href="/static/codemirror-5.52.2/addon/fold/foldgutter.css"/>
+	<!--支持全屏-->
+	<script src="/static/codemirror-5.52.2/addon/display/fullscreen.js"></script>
+        <script src="/static/codemirror-5.52.2/addon/fold/foldcode.js"></script>
+        <script src="/static/codemirror-5.52.2/addon/fold/foldgutter.js"></script>
+        <script src="/static/codemirror-5.52.2/addon/fold/brace-fold.js"></script>
+        <script src="/static/codemirror-5.52.2/addon/fold/comment-fold.js"></script>
+        <!--括号匹配-->
+        <script src="/static/codemirror-5.52.2/addon/edit/matchbrackets.js"></script>
+	<script type="text/javascript">
+            var editor = CodeMirror.fromTextArea(document.getElementById("code_content"), {
+                     //   mode: "text/groovy",    //实现groovy代码高亮
+//                        mode: "text/x-python", //实现Java代码高亮
+                        lineNumbers: true,      //显示行号
+                        theme: "monokai",       //设置主题
+//                        lineWrapping: true,     //代码折叠
+//                        foldGutter: true,
+ //                       gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+//                        matchBrackets: true,    //括号匹配
+		        extraKeys: {
+                            "F11": function(cm) {
+                            cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                            },
+                            "Esc": function(cm) {
+                            if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+                            }
+                        },
+                        // readOnly: false,        //只读
+                    });
+            var charWidth = editor.defaultCharWidth(), basePadding = 4;
+            editor.on("renderLine", function(cm, line, elt) {
+            var off = CodeMirror.countColumn(line.text, null, cm.getOption("tabSize")) * charWidth;
+                elt.style.textIndent = "-" + off + "px";
+                elt.style.paddingLeft = (basePadding + off) + "px";
+            });
+            editor.refresh();
+            //editor.setSize("900px", "1200px");     //设置代码框的长宽
+            $('#code_select').on('change', function() {
+		if(this.value==="py2"||"py3"){
+		    editor.setOption("mode","text/x-python");     
+		}else if (this.value==="gcc7.4"){
+		    editor.setOption("mode","text/x-csrc");
+		}else if (this.value==="shell"){
+		    editor.setOption("mode","text/x-sh");
+		}
+            }); 
+            function run_code(){
+		var language=$("#code_select").val();
+		if(language==="0"){
+	            alert("请选择编译种类");
+		}else{
+		    var code_content=editor.getValue();
+	            $.ajax({
+                        type: "POST",
+                        url: "/python/run_code",
+                        data: {
+                            language: language,
+                            code_content: code_content,
+                            csrfmiddlewaretoken: '{{ csrf_token }}',
+                        },
+                        success: function (data_info) {
+                            alert_result(data_info);
+                        }
+                    });
+		}
+	    }
+            function alert_result(result){
+		layx.html('customsize','',result,
+                {width:400,
+                 height:400, 
+		 icon:false,
+                 statusBar:true,
+                },);
+	    }
+        </script>
+    </body>
+</html>
